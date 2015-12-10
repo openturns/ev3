@@ -142,7 +142,7 @@ static double Erfc(double v)
 }
 static double Abs(double v)
 {
-  return fabs(v);
+  return std::abs(v);
 }
 static double Cbrt(double v)
 {
@@ -426,12 +426,12 @@ int main()
       if( std::isnan(df2)|| std::isinf(df2) || (df2==0))
         continue;
       double err_g = 0.;
-      if (fabs(df)>1e5||fabs(df2)<1e-10)
+      if (std::abs(df)>1e5||std::abs(df2)<1e-10)
         continue;
-      if (fabs(df) > 1e-5)
-        err_g = fabs(df2/df-1.);
+      if (std::abs(df) > 1e-5)
+        err_g = std::abs(df2/df-1.);
       else
-        err_g = fabs(df - df2);
+        err_g = std::abs(df - df2);
 
       if (err_g > 1e-2) {
         std::cout << "XXXXXXXXX df="<<df<<" df2="<<df2<<" err="<<err_g<<std::endl;
