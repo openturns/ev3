@@ -1,8 +1,6 @@
 cmake_minimum_required (VERSION 2.8)
 
-if (NOT DEFINED CMAKE_BUILD_TYPE)
-  set (CMAKE_BUILD_TYPE Release CACHE STRING "Build type")
-endif ()
+set (CMAKE_BUILD_TYPE Release CACHE STRING "Build type")
 
 project (ev3 CXX)
 set (project_dir ${ev3_SOURCE_DIR})
@@ -29,6 +27,7 @@ if (MSVC)
 endif ()
 
 option (BUILD_SHARED_LIBS "shared/static" ON)
+option (BUILD_TESTING "tests" ON)
 
 if (MSVC)
   find_package (Boost REQUIRED)

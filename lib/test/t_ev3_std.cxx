@@ -39,10 +39,10 @@ public:
 };
 
 
-class NumericalPoint : public std::vector<double>
+class Point : public std::vector<double>
 {
 public:
-  explicit NumericalPoint(const unsigned long Size = 0, const double expr = 0.)
+  explicit Point(const unsigned long Size = 0, const double expr = 0.)
     : std::vector<double>(Size)
   {
     for (unsigned long i = 0; i < Size; ++i)
@@ -204,24 +204,24 @@ public:
   }
 
   
-  NumericalPoint eval(const NumericalPoint & inP)
+  Point eval(const Point & inP)
   {
     AnalyticalParser parser;
     unsigned long inputSize = inputVariables_.size();
-    NumericalPoint buf(inP);
+    Point buf(inP);
     for (unsigned long i = 0; i < inputSize; ++i) {
        parser.DefineVar(inputVariables_[i].c_str(), &buf[i]);
     }
     parser.SetExpr(evaluation_[0].c_str());
-    return NumericalPoint(1, parser.Eval());
+    return Point(1, parser.Eval());
   }
   
-  NumericalPoint grad(const NumericalPoint & inP)
+  Point grad(const Point & inP)
   {
     unsigned long inputSize = inputVariables_.size();
-    NumericalPoint buf(inP);
+    Point buf(inP);
 
-    NumericalPoint result(inputSize);
+    Point result(inputSize);
     for (unsigned long i = 0; i < inputSize; ++i) {
       AnalyticalParser parser;
       for (unsigned long j = 0; j < inputSize; ++j) {
@@ -235,16 +235,16 @@ public:
     return result;
   }
   
-  NumericalPoint grad_fd(const NumericalPoint & inP)
+  Point grad_fd(const Point & inP)
   {
     unsigned long inputSize = inputVariables_.size();
     double eps = 1e-5;
     
-    NumericalPoint result(inputSize);
+    Point result(inputSize);
     for (unsigned long i = 0; i < inputSize; ++i) {
-      NumericalPoint x1(inP);
+      Point x1(inP);
       x1[i] += eps;
-      NumericalPoint x2(inP);
+      Point x2(inP);
       x2[i] -= eps;
       double df = (eval(x1)[0]-eval(x2)[0])/(2.*eps);
       result[i] = df;
@@ -369,7 +369,7 @@ int main()
   
   unsigned long dimension = 2;
   Description inputVars(dimension);
-  NumericalPoint x(dimension, 0.4);
+  Point x(dimension, 0.4);
   
   for (unsigned long i = 0; i < dimension; ++i) {
     std::stringstream oss;
@@ -405,7 +405,9 @@ int main()
       formulas.add("-(x1-1)^2");
       formulas.add("exp(-(x1-1)^2)");
       formulas.add("-x1+x1--3*x1+-7*x1");
-       
+      formulas.add("(3*x1)^(-1)");
+//       formulas.add("(-2*x1^2)^(-4*(x2)/(x2))");
+
       if (j < formulas.size())
         formulas = Description(1, formulas[j]);
       else
@@ -434,7 +436,7 @@ int main()
         err_g = std::abs(df - df2);
 
       if (err_g > 1e-2) {
-        std::cout << "XXXXXXXXX df="<<df<<" df2="<<df2<<" err="<<err_g<<std::endl;
+        std::cout << "Wrong gradient! df="<<df<<" df2="<<df2<<" err="<<err_g<<std::endl;
         throw std::exception();
       }
     } catch (mu::ParserError & ex)
