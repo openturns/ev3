@@ -3,13 +3,19 @@
 Ev3
 ===
 
-Ev3 is a C++ library to compute symbolic derivatives written by [Leo Liberti] (http://www.lix.polytechnique.fr/~liberti/academic.html).
+Ev3 is a C++ [library for symbolic computation](http://www.lix.polytechnique.fr/Labo/Leo.Liberti/Ev3.pdf) written by [Leo Liberti](http://www.lix.polytechnique.fr/~liberti/academic.html).
 
-It is an alternative to [libmatheval](http://www.gnu.org/software/libmatheval/) but under the more permissive [CPL](http://en.wikipedia.org/wiki/Common_Public_License) license.
+It is an alternative to [libmatheval](http://www.gnu.org/software/libmatheval/).
 
-The library was originaly available [here](http://www.lix.polytechnique.fr/~liberti/Ev3-1.0.tar.gz), and used also [here] (https://projects.coin-or.org/ROSE/browser/rose/Ev3) with some modifications. This is the debugged version used in the [OpenTURNS](http://www.openturns.org) software.
+It was [originally published](http://www.lix.polytechnique.fr/~liberti/Ev3-1.0.tar.gz) by Leo Liberti under the [CPL](http://en.wikipedia.org/wiki/Common_Public_License) license.
 
-Here a snippet which define two variables and derivates an expression:
+The Computational Infrastructure for Operations Research project ([COIN-OR](https://www.coin-or.org/)) uses a modified version in [ROSE](https://github.com/coin-or/ROSE/).
+
+Leo Liberti has since [republished the original Ev3](http://www.lix.polytechnique.fr/~liberti/Ev3-1.0.zip) under the LGPL license (see `COPYING` and `COPYING.LESSER`).
+
+This repository stores a debugged version used in the [OpenTURNS](http://www.openturns.org) software also published under the LGPL.
+
+Here is a snippet which defines two variables and differentiates an expression:
 ```
 #include <iostream>
 #include "expression.h"
