@@ -13,7 +13,8 @@ The Computational Infrastructure for Operations Research project ([COIN-OR](http
 
 Leo Liberti has since [republished the original Ev3](http://www.lix.polytechnique.fr/~liberti/Ev3-1.0.zip) under the LGPL license (see `COPYING` and `COPYING.LESSER`).
 
-This repository stores a debugged version used in the [OpenTURNS](http://www.openturns.org) software also published under the LGPL.
+This repository stores the version used in the [OpenTURNS](http://www.openturns.org) software also published under the LGPL.
+It contains bug fixes made between 2015 and 2019.
 
 Here is a snippet which defines two variables and differentiates an expression:
 ```
