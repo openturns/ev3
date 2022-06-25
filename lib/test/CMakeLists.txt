@@ -7,6 +7,6 @@ if (MUPARSER_FOUND AND BUILD_TESTING)
   add_executable (t_ev3_std t_ev3_std.cxx)
   target_link_libraries (t_ev3_std ev3 ${MUPARSER_LIBRARIES})
 
-  add_test (NAME t_ev3_std COMMAND t_ev3_std${CMAKE_EXECUTABLE_SUFFIX})
+  add_test (NAME t_ev3_std COMMAND t_ev3_std)
 
 endif ()

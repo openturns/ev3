@@ -32,6 +32,7 @@ jobs:
         shell: cmd
         run: |
           mkdir build && cd build
-          cmake -LAH -DCMAKE_INSTALL_PREFIX=%cd:\=/%/install ..
+          xcopy %cd%\..\muparser\install\bin\muparser.dll .
+          cmake -LAH -DCMAKE_INSTALL_PREFIX=%cd:\=/%/install -DMUPARSER_LIBRARY=%cd:\=/%/muparser/install/lib/muparser.lib -DMUPARSER_INCLUDE_DIR=%cd:\=/%/muparser/install/include ..
           cmake --build . --config Release --target install
           ctest -j2 --output-on-failure -C Release
