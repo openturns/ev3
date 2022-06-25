@@ -26,23 +26,7 @@
 #include <cassert>
 #include <iomanip>
 
-#ifdef _MSC_VER
-#include <boost/math/special_functions.hpp>
-#endif
-
 #include "expression.h"
-
-#ifdef _MSC_VER
-using namespace boost::math;
-
-//because of 'deprecated' warnings
-#define j0(x) _j0(x)
-#define j1(x) _j1(x)
-#define y0(x) _y0(x)
-#define y1(x) _y1(x)
-#define i0(x) _i0(x)
-#define i1(x) _i1(x)
-#endif
 
 namespace Ev3
 {
@@ -699,6 +683,26 @@ int BasicExpression::DependsLinearlyOnVariable(Int vi) const
       {
         return 2;
       }
+    }
+    else if (GetOpType() == PRODUCT)
+    {
+      int nbBranchesDependingOnVariable = 0;
+      for(i = 0; i < GetSize(); i++)
+      {
+        d = GetNode(i)->DependsLinearlyOnVariable(vi);
+        if (d == 0)
+          return 0;
+
+        if (d == 1)
+          ++nbBranchesDependingOnVariable;
+      }
+
+      if (nbBranchesDependingOnVariable == 0)
+        return 2;
+      else if (nbBranchesDependingOnVariable == 1)
+        return 1;
+      else
+        return 0;
     }
     else
     {

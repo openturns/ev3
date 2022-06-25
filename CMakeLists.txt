@@ -29,11 +29,6 @@ endif ()
 option (BUILD_SHARED_LIBS "shared/static" ON)
 option (BUILD_TESTING "tests" ON)
 
-if (MSVC)
-  find_package (Boost REQUIRED)
-  include_directories (${Boost_INCLUDE_DIRS})
-  list (APPEND EV3_DEFINITIONS -D_USE_MATH_DEFINES)
-endif ()
 
 add_definitions (${EV3_DEFINITIONS})
 
