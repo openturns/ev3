@@ -25,7 +25,7 @@ jobs:
         run: |
           git clone https://github.com/beltoforion/muparser.git
           cd muparser
-          cmake -LAH -DCMAKE_INSTALL_PREFIX=%cd:\=/%/install
+          cmake -LAH -DCMAKE_INSTALL_PREFIX=%cd:\=/%/install .
           cmake --build . --config Release --target install
           cd ..
       - name: Build
@@ -33,6 +33,6 @@ jobs:
         run: |
           mkdir build && cd build
           xcopy %cd%\..\muparser\install\bin\muparser.dll .
-          cmake -LAH -DCMAKE_INSTALL_PREFIX=%cd:\=/%/install -DMUPARSER_LIBRARY=%cd:\=/%/muparser/install/lib/muparser.lib -DMUPARSER_INCLUDE_DIR=%cd:\=/%/muparser/install/include ..
+          cmake -LAH -DCMAKE_INSTALL_PREFIX=%cd:\=/%/install -DMUPARSER_LIBRARY=%cd:\=/%/../muparser/install/lib/muparser.lib -DMUPARSER_INCLUDE_DIR=%cd:\=/%/../muparser/install/include ..
           cmake --build . --config Release --target install
           ctest -j2 --output-on-failure -C Release
