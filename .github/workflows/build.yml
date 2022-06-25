@@ -1,0 +1,37 @@
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+jobs:
+  linux:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install
+      run: |
+        sudo apt install -y cmake libmuparser-dev
+    - name: Build
+      run: |
+        cmake -DCMAKE_INSTALL_PREFIX=~/.local .
+        make install -j2
+        ctest -j2 --output-on-failure
+
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install
+        shell: cmd
+        run: |
+          git clone https://github.com/beltoforion/muparser.git
+          cd muparser
+          cmake -LAH -DCMAKE_INSTALL_PREFIX=%cd:\=/%/install
+          cmake --build . --config Release --target install
+          cd ..
+      - name: Build
+        shell: cmd
+        run: |
+          mkdir build && cd build
+          cmake -LAH -DCMAKE_INSTALL_PREFIX=%cd:\=/%/install ..
+          cmake --build . --config Release --target install
+          ctest -j2 --output-on-failure -C Release
