@@ -8,7 +8,7 @@
 
 #include "expression.h"
 #include "parser.h"
-#include "muParser.h"
+#include "exprtk.hpp"
 
 class Description : public std::vector<std::string>
 {
@@ -67,111 +67,6 @@ public:
 };
 
 
-class AnalyticalParser : public mu::Parser
-{
-
-public:
-  AnalyticalParser() : mu::Parser()
-{
-  DefineFun(_T("cotan"), Cotan); // modified
-  DefineFun(_T("acotan"), ACotan); // modified
-  DefineFun(_T("asinh"), ASinh); // modified
-  DefineFun(_T("acosh"), ACosh); // modified
-  DefineFun(_T("atanh"), ATanh); // modified
-  DefineFun(_T("log"), Ln); // modified: assigned to log10 by default
-  DefineFun(_T("log2"), Log2); // modified
-  DefineFun(_T("lngamma"), LnGamma); // added
-  DefineFun(_T("gamma"), Gamma); // added
-  DefineFun(_T("erf"), Erf); // added
-  DefineFun(_T("erfc"), Erfc); // added
-  DefineFun(_T("abs"), Abs); // modified
-  DefineFun(_T("cbrt"), Cbrt); // added
-  DefineFun(_T("besselJ0"), J0); // added
-  DefineFun(_T("besselJ1"), J1); // added
-  DefineFun(_T("besselY0"), Y0); // added
-  DefineFun(_T("besselY1"), Y1); // added
-  DefineFun(_T("rint"), Rint); // modified
-}
-
-protected:
-
-static double Cotan(double v)
-{
-  return 1.0 / tan(v);
-}
-static double ACotan(double v)
-{
-  if (v < 0.0) return -M_PI_2 - atan(v);
-  return M_PI_2 - atan(v);
-}
-static double ASinh(double v)
-{
-  return asinh(v);
-}
-static double ACosh(double v)
-{
-  return acosh(v);
-}
-static double ATanh(double v)
-{
-  return atanh(v);
-}
-static double Ln(double v)
-{
-  return log(v);
-}
-static double Log2(double v)
-{
-  return log2(v);
-}
-static double LnGamma(double v)
-{
-  return lgamma(v);
-}
-static double Gamma(double v)
-{
-  return tgamma(v);
-}
-static double Erf(double v)
-{
-  return erf(v);
-}
-static double Erfc(double v)
-{
-  return erfc(v);
-}
-static double Abs(double v)
-{
-  return std::abs(v);
-}
-static double Cbrt(double v)
-{
-  return cbrt(v);
-}
-static double J0(double v)
-{
-  return j0(v);
-}
-static double J1(double v)
-{
-  return j1(v);
-}
-static double Y0(double v)
-{
-  return y0(v);
-}
-static double Y1(double v)
-{
-  return y1(v);
-}
-static double Rint(double v)
-{
-  return round(v);
-}
-
-
-};
-
 class Function {
 public:
 
@@ -183,58 +78,89 @@ public:
     int nerr = 0;
     Ev3::Expression ev3Expression;
     Ev3::ExpressionParser ev3Parser;
-//     try {
-        for (unsigned long i = 0; i < inputSize; ++i)
-          ev3Parser.SetVariableID(inputVariables_[i], i);
-        ev3Expression = ev3Parser.Parse(evaluation_[0].c_str(), nerr);
 
-        if(nerr!=0) throw std::exception();
-        for (unsigned long i = 0; i < inputVariables_.size(); ++i) {
-          Ev3::Expression derivative = Ev3::Diff(ev3Expression, i);
-          std::stringstream oss;
-          oss << std::setprecision(12) << derivative;
-          gradient_[i] = oss.str();
-        }
-//       }
-//       catch (Ev3::ErrBase & exc) {
-//         throw std::exception();
-//       }
-      
-    
+    for (unsigned long i = 0; i < inputSize; ++i)
+      ev3Parser.SetVariableID(inputVariables_[i], i);
+    ev3Expression = ev3Parser.Parse(evaluation_[0].c_str(), nerr);
+
+    if(nerr!=0) throw std::exception();
+    for (unsigned long i = 0; i < inputVariables_.size(); ++i) {
+      Ev3::Expression derivative = Ev3::Diff(ev3Expression, i);
+      std::stringstream oss;
+      oss << std::setprecision(12) << derivative;
+      gradient_[i] = oss.str();
+    }
   }
 
+  static double Function_sign(double v)
+  {
+    if (v > 0.0) return 1.0;
+    else if (v < 0.0) return -1.0;
+    else return 0.0;
+  }
+  
+  static exprtk::symbol_table<double> get_symbol_table()
+  {
+    exprtk::symbol_table<double> symbol_table;
+    symbol_table.add_constant("e_", 2.71828182845904523536028747135266249775724709369996);
+    symbol_table.add_constant("pi_", 3.14159265358979323846264338327950288419716939937510);
+    symbol_table.add_function("sign", Function_sign);
+    symbol_table.add_function("ln", std::log);
+    symbol_table.add_function("cbrt", cbrt);
+    return symbol_table;
+  }
   
   Point eval(const Point & inP)
   {
-    AnalyticalParser parser;
+    exprtk::symbol_table<double> symbol_table = get_symbol_table();
     unsigned long inputSize = inputVariables_.size();
-    Point buf(inP);
-    for (unsigned long i = 0; i < inputSize; ++i) {
-       parser.DefineVar(inputVariables_[i].c_str(), &buf[i]);
+    Point buf(inputSize + 1);
+    for (unsigned long i = 0; i < inputSize; ++i)
+    {
+      buf[i] = inP[i];
+      if (!symbol_table.add_variable(inputVariables_[i], buf[i]))
+        throw std::runtime_error(std::string("add_variable error"));
     }
-    parser.SetExpr(evaluation_[0].c_str());
-    return Point(1, parser.Eval());
+    if (!symbol_table.add_variable("y", buf[inputSize]))
+      throw std::runtime_error(std::string("add_variable error"));
+    
+    exprtk::parser<double> parser;
+    exprtk::expression<double> expression;
+    expression.register_symbol_table(symbol_table);
+    if (!parser.compile(evaluation_[0], expression))
+      throw std::runtime_error(std::string("eval compile error: ") + parser.get_error(0).diagnostic);
+    expression.value();
+    return Point(1, buf[inputSize]);
   }
   
   Point grad(const Point & inP)
   {
+    exprtk::symbol_table<double> symbol_table = get_symbol_table();
     unsigned long inputSize = inputVariables_.size();
-    Point buf(inP);
-
-    Point result(inputSize);
-    for (unsigned long i = 0; i < inputSize; ++i) {
-      AnalyticalParser parser;
-      for (unsigned long j = 0; j < inputSize; ++j) {
-        parser.DefineVar(inputVariables_[j].c_str(), &buf[j]);
-      }
-
-      parser.SetExpr(gradient_[i].c_str());
-      result[i] =  parser.Eval();
-      
+    Point buf(inputSize + 1);
+    for (unsigned long i = 0; i < inputSize; ++i)
+    {
+      buf[i] = inP[i];
+      if (!symbol_table.add_variable(inputVariables_[i], buf[i]))
+        throw std::runtime_error(std::string("add_variable error"));
     }
-    return result;
+    if (!symbol_table.add_variable("y", buf[inputSize]))
+      throw std::runtime_error(std::string("add_variable error"));
+    
+    exprtk::parser<double> parser;
+    exprtk::expression<double> expression;
+    expression.register_symbol_table(symbol_table);
+    Point grad(inputSize);
+    for (unsigned long i = 0; i < inputSize; ++i)
+    {
+      if (!parser.compile(gradient_[i], expression))
+        throw std::runtime_error(std::string("grad compile error: ") + parser.get_error(0).diagnostic);
+      expression.value();
+      grad[i] = buf[inputSize];
+    }
+    return grad;
   }
-  
+
   Point grad_fd(const Point & inP)
   {
     unsigned long inputSize = inputVariables_.size();
@@ -437,10 +363,12 @@ int main()
 
       if (err_g > 1e-2) {
         std::cout << "Wrong gradient! df="<<df<<" df2="<<df2<<" err="<<err_g<<std::endl;
-        throw std::exception();
+        throw std::logic_error("wrong gradient");
       }
-    } catch (mu::ParserError & ex)
+    }
+    catch (std::exception & ex)
     {
+      std::cout << ex.what() << std::endl;
       continue;
     }    
     catch (Ev3::ErrBase & ex)
