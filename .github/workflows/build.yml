@@ -24,6 +24,6 @@ jobs:
         shell: cmd
         run: |
           mkdir build && cd build
-          cmake -LAH -DCMAKE_INSTALL_PREFIX=%cd:\=/%/install -DBUILD_SHARED_LIBS=OFF ..
-          cmake --build . --config Release --target install
-          ctest -j2 --output-on-failure -C Release
+          cmake -LAH -DCMAKE_INSTALL_PREFIX=%cd:\=/%/install -DBUILD_SHARED_LIBS=OFF -DCMAKE_BUILD_TYPE=Debug ..
+          cmake --build . --config Debug --target install
+          ctest -j2 --output-on-failure -C Debug
