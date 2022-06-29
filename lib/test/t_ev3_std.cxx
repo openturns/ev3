@@ -371,7 +371,7 @@ int main()
       std::cout << ex.what() << std::endl;
       continue;
     }    
-    catch (Ev3::ErrBase & ex)
+    catch (Ev3::ErrBase &)
     {
       continue;
     }
